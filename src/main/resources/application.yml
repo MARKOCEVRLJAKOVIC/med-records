@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/med_records
+    username: postgres
+    password: mare2003
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+  jwt:
+    secret: ${JWT_SECRET_KEY}
+    accessTokenExpiration: 7200 # 2 hours
+    refreshTokenExpiration: 604800 # 7 days
