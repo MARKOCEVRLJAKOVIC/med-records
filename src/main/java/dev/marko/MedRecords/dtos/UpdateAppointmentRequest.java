@@ -6,9 +6,8 @@ import lombok.Data;
 import java.sql.Timestamp;
 
 @Data
-public class AppointmentDto {
+public class UpdateAppointmentRequest {
 
-    private Long id;
     private Timestamp startTime;
     private Timestamp endTime;
     private AppointmentStatus status;
@@ -16,7 +15,5 @@ public class AppointmentDto {
     private Long clientId;
     private Long providerId;
     private Long serviceId;
-
-
 
 }

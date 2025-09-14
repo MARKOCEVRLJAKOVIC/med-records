@@ -40,7 +40,6 @@ public class AdminClientController {
     public ResponseEntity<ClientDto> findClient(@PathVariable Long id){
 
         var client = clientRepository.findById(id).orElseThrow(ClientNotFoundException::new);
-
         var clientDto = clientMapper.toDto(client);
 
         return ResponseEntity.ok(clientDto);

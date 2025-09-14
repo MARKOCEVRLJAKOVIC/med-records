@@ -31,6 +31,10 @@ public class Service {
     @Column(name = "duration_minutes")
     private Integer durationMinutes;
 
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "provider_id")
+    private Provider provider;
+
     @OneToMany(mappedBy = "service")
     private List<Appointment> appointments = new ArrayList<>();
 

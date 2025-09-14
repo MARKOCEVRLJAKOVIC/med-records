@@ -9,5 +9,8 @@ public class UpdateMedicalRecordRequest {
 
     private Timestamp date;
     private String notes;
+    private Long clientId;
+    private Long serviceId;
+    private Long providerId;
 
 }

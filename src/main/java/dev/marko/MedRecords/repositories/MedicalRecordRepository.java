@@ -13,6 +13,7 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Lo
 
     List<MedicalRecord> findAllByProviderId(Long id);
     List<MedicalRecord> findAllByProvider(Provider provider);
+    List<MedicalRecord> findAllByProviderAndUser(Provider provider, User user);
     List<MedicalRecord> findAllByClient(Client client);
 
     Optional<MedicalRecord> findByIdAndClientUser(Long id, User user);
