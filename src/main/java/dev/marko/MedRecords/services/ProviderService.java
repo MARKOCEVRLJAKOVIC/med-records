@@ -72,13 +72,13 @@ public class ProviderService {
             // admin can see providers by id
             providerRepository.findById(providerId)
                     .orElseThrow(ProviderNotFoundException::new);
-            clientList = clientRepository.findAllByProviderId(providerId);
+            clientList = clientRepository.findAllByProviderViaAppointments(providerId);
         }
         else if (user.getRole() == Role.PROVIDER) {
             // provider must be target provider
             var provider = providerRepository.findByIdAndUser(providerId, user)
                     .orElseThrow(ProviderNotFoundException::new);
-            clientList = clientRepository.findAllByProviderAndUser(provider, user);
+            clientList = clientRepository.findAllByProviderViaAppointmentsAndUser(provider, user);
         }
         else {
             throw new AccessDeniedException("You can only view your clients.");

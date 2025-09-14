@@ -4,6 +4,8 @@ import dev.marko.MedRecords.entities.Client;
 import dev.marko.MedRecords.entities.Provider;
 import dev.marko.MedRecords.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,8 +13,24 @@ import java.util.Optional;
 public interface ClientRepository extends JpaRepository<Client, Long> {
 
     List<Client> findAllByUser(User user);
-    List<Client> findAllByProviderId(Long providerId);
-    List<Client> findAllByProviderAndUser(Provider provider, User user);
+
+    @Query("""
+       SELECT DISTINCT c
+       FROM Client c
+       JOIN c.appointments a
+       WHERE a.provider.id = :providerId
+       """)
+    List<Client> findAllByProviderViaAppointments(@Param("providerId") Long providerId);
+
+    @Query("""
+       SELECT DISTINCT c
+       FROM Client c
+       JOIN c.appointments a
+       WHERE a.provider = :provider
+         AND c.user = :user
+       """)
+    List<Client> findAllByProviderViaAppointmentsAndUser(@Param("provider") Provider provider,
+                                                         @Param("user") User user);
 
     Optional<Client> findByIdAndUser(Long id, User user);
 
