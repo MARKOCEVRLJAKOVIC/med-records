@@ -4,9 +4,11 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import dev.marko.MedRecords.auth.AuthService;
 import dev.marko.MedRecords.dtos.PhotoDto;
+import dev.marko.MedRecords.dtos.UpdatePhotoRequest;
 import dev.marko.MedRecords.entities.Photo;
 import dev.marko.MedRecords.entities.PhotoType;
-import dev.marko.MedRecords.entities.Role;
+import dev.marko.MedRecords.entities.Provider;
+import dev.marko.MedRecords.entities.User;
 import dev.marko.MedRecords.exceptions.ClientNotFoundException;
 import dev.marko.MedRecords.exceptions.MedicalRecordNotFoundException;
 import dev.marko.MedRecords.exceptions.PhotoNotFoundException;
@@ -15,6 +17,7 @@ import dev.marko.MedRecords.repositories.ClientRepository;
 import dev.marko.MedRecords.repositories.MedicalRecordRepository;
 import dev.marko.MedRecords.repositories.PhotoRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Map;
 
 @AllArgsConstructor
@@ -35,23 +39,33 @@ public class PhotoService {
     private final ClientRepository clientRepository;
     private final MedicalRecordRepository medicalRecordRepository;
 
+    public List<PhotoDto> findAllPhotosForClient(Long clientId) {
+
+        var user = authService.getCurrentUser();
+
+        var client = clientRepository.findById(clientId)
+                .orElseThrow(ClientNotFoundException::new);
+
+        var photoList = switch (user.getRole()){
+
+            case ADMIN -> photoRepository.findAllForClient(client);
+            case PROVIDER -> photoRepository.findAllByIdWithMedicalRecordAndProviderId(clientId, user.getProvider().getId());
+            case CLIENT -> photoRepository.findAllByIdAndClient_User(clientId, user);
+
+            default -> throw new AccessDeniedException("Access denied");
+        };
+
+        return photoMapper.toListDto(photoList);
+
+    }
+
     public PhotoDto findPhoto(Long id){
 
         var user = authService.getCurrentUser();
 
+        var provider = user.getProvider();
 
-        var photo = switch (user.getRole()){
-            case ADMIN, PROVIDER -> photoRepository.findById(id)
-                    .orElseThrow(PhotoNotFoundException::new);
-            case CLIENT -> photoRepository.findByIdAndClient_User(id, user)
-                    .orElseThrow(PhotoNotFoundException::new);
-            default -> throw new AccessDeniedException("");
-        };
-
-        if(user.getRole() == Role.PROVIDER &&
-                !photo.getMedicalRecord().getProvider().equals(user.getProvider())){
-            throw new AccessDeniedException("You can only view photos of your clients");
-        }
+        var photo = getPhotoForRole(id, user, provider);
 
         var photoDto = photoMapper.toDto(photo);
         photoDto.setUrl(getSignedPhotoUrl(photo.getPublicId()));
@@ -59,6 +73,8 @@ public class PhotoService {
         return photoDto;
 
     }
+
+
 
     @Transactional
     public PhotoDto uploadPhoto(MultipartFile file,
@@ -96,6 +112,31 @@ public class PhotoService {
 
     }
 
+    @Transactional
+    public PhotoDto updatePhoto(Long id, UpdatePhotoRequest request) {
+
+        var user = authService.getCurrentUser();
+        var provider = user.getProvider();
+        var photo = getPhotoForRole(id, user, provider);
+
+        photoMapper.update(request, photo);
+        photoRepository.save(photo);
+
+        return photoMapper.toDto(photo);
+
+    }
+
+    @Transactional
+    public void deletePhoto(Long id){
+
+        var user = authService.getCurrentUser();
+        var provider = user.getProvider();
+        var photo = getPhotoForRole(id, user, provider);
+
+        photoRepository.delete(photo);
+
+    }
+
 
 
     // methods
@@ -108,6 +149,18 @@ public class PhotoService {
         );
 
         return cloudinary.url().signed(true).generate(publicId);
+    }
+
+    private Photo getPhotoForRole(Long id, User user, Provider provider) {
+        return switch (user.getRole()) {
+            case ADMIN -> photoRepository.findById(id)
+                    .orElseThrow(PhotoNotFoundException::new);
+            case PROVIDER -> photoRepository.findByIdWithMedicalRecordAndProviderId(id, provider.getId())
+                    .orElseThrow(PhotoNotFoundException::new);
+            case CLIENT -> photoRepository.findByIdAndClient_User(id, user)
+                    .orElseThrow(PhotoNotFoundException::new);
+            default -> throw new AccessDeniedException("Access Denied");
+        };
     }
 
 }
