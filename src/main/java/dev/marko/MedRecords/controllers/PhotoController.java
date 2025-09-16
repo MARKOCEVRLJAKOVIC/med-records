@@ -2,6 +2,7 @@ package dev.marko.MedRecords.controllers;
 
 import dev.marko.MedRecords.dtos.PhotoDto;
 import dev.marko.MedRecords.dtos.UploadPhotoRequest;
+import dev.marko.MedRecords.entities.PhotoType;
 import dev.marko.MedRecords.services.PhotoService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -11,6 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @RestController
@@ -20,11 +23,15 @@ public class PhotoController {
     private final PhotoService photoService;
 
     @PostMapping("/upload")
-    public ResponseEntity<PhotoDto> upload(@RequestPart("file") MultipartFile file,
-                                           @RequestPart("data") @Valid UploadPhotoRequest request,
+    public ResponseEntity<PhotoDto> upload(@RequestParam("file") MultipartFile file,
+                                           @RequestParam("type") PhotoType type,
+                                           @RequestParam("takenAt") Timestamp takenAt,
+                                           @RequestParam("clientId") Long clientId,
+                                           @RequestParam("medicalRecordId") Long medicalRecordId,
                                            UriComponentsBuilder builder) throws IOException {
 
-        var photoDto = photoService.uploadPhoto(file, request);
+
+        var photoDto = photoService.uploadPhoto(file, type,takenAt, clientId, medicalRecordId);
         var uri = builder.path("/photos/{id}").buildAndExpand(photoDto.getId()).toUri();
 
         return ResponseEntity.created(uri).body(photoDto);

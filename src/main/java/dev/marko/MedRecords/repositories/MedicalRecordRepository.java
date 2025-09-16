@@ -16,6 +16,7 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Lo
 
     Optional<MedicalRecord> findByIdAndClientUser(Long id, User user);
     Optional<MedicalRecord> findByIdAndProviderUser(Long id, User user);
+    Optional<MedicalRecord> findByIdAndClient(Long id, Client client);
 
 
 }
