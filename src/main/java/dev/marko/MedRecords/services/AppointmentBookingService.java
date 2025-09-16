@@ -37,7 +37,7 @@ import java.util.List;
 
 @AllArgsConstructor
 @Service
-public class AppointmentService {
+public class AppointmentBookingService {
 
     private final ProviderRepository providerRepository;
     private final AuthService authService;
@@ -102,10 +102,21 @@ public class AppointmentService {
         var provider = findProvider(request, user);
         var service = findService(request);
 
+
+
         var appointment = appointmentMapper.toEntity(request);
         appointment.setClient(client);
         appointment.setProvider(provider);
-        appointment.setService(service);
+
+        AppointmentService services = AppointmentService.builder()
+                .service(service)
+                .durationOverride(service.getDurationMinutes())
+                .appointment(appointment)
+                .priceOverride(service.getPrice())
+                .build();
+
+        appointment.setServices(List.of(services));
+
 
         appointmentRepository.save(appointment);
 

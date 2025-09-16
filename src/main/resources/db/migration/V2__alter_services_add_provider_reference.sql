@@ -1,2 +1,0 @@
-ALTER TABLE services
-ADD COLUMN provider_id BIGINT NOT NULL REFERENCES providers(id) ON DELETE CASCADE;

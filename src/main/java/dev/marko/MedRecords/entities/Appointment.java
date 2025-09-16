@@ -1,11 +1,14 @@
 package dev.marko.MedRecords.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import dev.marko.MedRecords.services.AppointmentBookingService;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -40,8 +43,20 @@ public class Appointment {
     @JsonBackReference
     private Provider provider;
 
+
+    @OneToMany(mappedBy = "appointment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AppointmentService> services = new ArrayList<>();
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "service_id")
-    private Service service;
+    @JoinColumn(name = "room_id")
+    private Room room;
+
+
+
+    @OneToMany(mappedBy = "appointment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AppointmentNotification> notifications = new ArrayList<>();
+
+    @Column(name = "recurrence_rule")
+    private String recurrenceRule; // npr. iCal RRULE string
 
 }

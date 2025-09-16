@@ -15,7 +15,6 @@ public interface AppointmentMapper {
 
     @Mapping(target = "clientId", source = "client.id")
     @Mapping(target = "providerId", source = "provider.id")
-    @Mapping(target = "serviceId", source = "service.id")
     AppointmentDto toDto(Appointment appointment);
 
     Appointment toEntity(BookAppointmentRequest request);

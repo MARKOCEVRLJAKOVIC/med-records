@@ -3,7 +3,7 @@ package dev.marko.MedRecords.controllers;
 import dev.marko.MedRecords.dtos.AppointmentDto;
 import dev.marko.MedRecords.dtos.BookAppointmentRequest;
 import dev.marko.MedRecords.dtos.UpdateAppointmentRequest;
-import dev.marko.MedRecords.services.AppointmentService;
+import dev.marko.MedRecords.services.AppointmentBookingService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/appointments")
 public class AppointmentController {
 
-    private final AppointmentService appointmentService;
+    private final AppointmentBookingService appointmentService;
 
     @GetMapping("/{id}")
     public ResponseEntity<AppointmentDto> getAppointment(@PathVariable Long id) {

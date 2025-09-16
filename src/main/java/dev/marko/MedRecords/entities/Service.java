@@ -36,9 +36,6 @@ public class Service {
     private Provider provider;
 
     @OneToMany(mappedBy = "service")
-    private List<Appointment> appointments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "service")
     private List<MedicalRecord> records = new ArrayList<>();
 
 }
