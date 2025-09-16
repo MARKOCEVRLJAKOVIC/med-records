@@ -22,7 +22,8 @@ public class PhotoController {
     @GetMapping("/{id}")
     public ResponseEntity<PhotoDto> findPhoto(@PathVariable Long id){
 
-        return null;
+        var photoDto = photoService.findPhoto(id);
+        return ResponseEntity.ok(photoDto);
 
     }
 

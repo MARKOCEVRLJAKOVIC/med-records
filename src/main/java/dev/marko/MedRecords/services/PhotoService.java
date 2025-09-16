@@ -4,7 +4,6 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import dev.marko.MedRecords.auth.AuthService;
 import dev.marko.MedRecords.dtos.PhotoDto;
-import dev.marko.MedRecords.dtos.UploadPhotoRequest;
 import dev.marko.MedRecords.entities.Photo;
 import dev.marko.MedRecords.entities.PhotoType;
 import dev.marko.MedRecords.entities.Role;
@@ -23,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.Map;
 
 @AllArgsConstructor
@@ -45,7 +43,7 @@ public class PhotoService {
         var photo = switch (user.getRole()){
             case ADMIN, PROVIDER -> photoRepository.findById(id)
                     .orElseThrow(PhotoNotFoundException::new);
-            case CLIENT -> photoRepository.findByIdAndUser(id, user)
+            case CLIENT -> photoRepository.findByIdAndClient_User(id, user)
                     .orElseThrow(PhotoNotFoundException::new);
             default -> throw new AccessDeniedException("");
         };
