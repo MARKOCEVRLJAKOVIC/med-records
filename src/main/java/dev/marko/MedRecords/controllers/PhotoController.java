@@ -1,10 +1,8 @@
 package dev.marko.MedRecords.controllers;
 
 import dev.marko.MedRecords.dtos.PhotoDto;
-import dev.marko.MedRecords.dtos.UploadPhotoRequest;
 import dev.marko.MedRecords.entities.PhotoType;
 import dev.marko.MedRecords.services.PhotoService;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +11,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @RestController
@@ -21,6 +18,14 @@ import java.time.LocalDateTime;
 public class PhotoController {
 
     private final PhotoService photoService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PhotoDto> findPhoto(@PathVariable Long id){
+
+        return null;
+
+    }
+
 
     @PostMapping("/upload")
     public ResponseEntity<PhotoDto> upload(@RequestParam("file") MultipartFile file,

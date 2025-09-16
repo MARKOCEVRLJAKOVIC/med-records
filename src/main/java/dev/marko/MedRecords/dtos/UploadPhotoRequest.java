@@ -2,7 +2,6 @@ package dev.marko.MedRecords.dtos;
 
 import dev.marko.MedRecords.entities.PhotoType;
 import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Timestamp;
 

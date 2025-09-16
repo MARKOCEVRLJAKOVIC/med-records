@@ -1,6 +1,5 @@
 package dev.marko.MedRecords.entities;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,8 +19,8 @@ public class Photo {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "url")
-    private String url;
+    @Column(name = "public_id", nullable = false)
+    private String publicId;
 
     @Column(name = "type")
     @Enumerated(EnumType.STRING)

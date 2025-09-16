@@ -1,0 +1,5 @@
+ALTER TABLE photos
+DROP COLUMN url;
+
+ALTER TABLE photos
+ADD COLUMN public_id VARCHAR(255) NULL;
