@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @Entity
@@ -30,4 +33,11 @@ public class Room {
 
     @Column(name = "is_active")
     private Boolean isActive = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "provider_id")
+    private Provider provider;
+
+    @OneToMany(mappedBy = "room")
+    private List<Appointment> appointments = new ArrayList<>();
 }

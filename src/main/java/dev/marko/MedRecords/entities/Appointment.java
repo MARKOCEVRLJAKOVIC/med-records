@@ -43,20 +43,17 @@ public class Appointment {
     @JsonBackReference
     private Provider provider;
 
-
-    @OneToMany(mappedBy = "appointment", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AppointmentService> services = new ArrayList<>();
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
     private Room room;
 
-
+    @OneToMany(mappedBy = "appointment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AppointmentService> services = new ArrayList<>();
 
     @OneToMany(mappedBy = "appointment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AppointmentNotification> notifications = new ArrayList<>();
 
     @Column(name = "recurrence_rule")
-    private String recurrenceRule; // npr. iCal RRULE string
+    private String recurrenceRule; //
 
 }

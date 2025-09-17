@@ -84,8 +84,8 @@ public class AppointmentBookingService {
 
         var appointmentList = switch (user.getRole()) {
             case ADMIN -> appointmentRepository.findAllByClientId(clientId);
-            case PROVIDER -> appointmentRepository.findAllByClientIdAndProviderUser(clientId, user).orElseThrow();
-            case CLIENT -> appointmentRepository.findAllByClientIdAndClientUser(clientId, user).orElseThrow();
+            case PROVIDER -> appointmentRepository.findAllByClientIdAndProviderUser(clientId, user);
+            case CLIENT -> appointmentRepository.findAllByClientIdAndClientUser(clientId, user);
             default -> throw new AccessDeniedException("");
         };
 
@@ -100,22 +100,29 @@ public class AppointmentBookingService {
 
         var client = findClient(request, user);
         var provider = findProvider(request, user);
-        var service = findService(request);
-
 
 
         var appointment = appointmentMapper.toEntity(request);
         appointment.setClient(client);
         appointment.setProvider(provider);
 
-        AppointmentService services = AppointmentService.builder()
-                .service(service)
-                .durationOverride(service.getDurationMinutes())
-                .appointment(appointment)
-                .priceOverride(service.getPrice())
-                .build();
+        // create AppointmentService for every service
+        List<AppointmentService> appointmentServices = request.getServiceIds().stream()
+                .map(serviceId -> {
 
-        appointment.setServices(List.of(services));
+                    var service = serviceRepository.findById(serviceId)
+                            .orElseThrow(ServiceNotFoundException::new);
+
+                    return AppointmentService.builder()
+                            .appointment(appointment)
+                            .service(service)
+                            .durationOverride(service.getDurationMinutes())
+                            .priceOverride(service.getPrice())
+                            .build();
+                })
+                .toList();
+
+        appointment.setServices(appointmentServices);
 
 
         appointmentRepository.save(appointment);
@@ -170,13 +177,6 @@ public class AppointmentBookingService {
         return providerRepository.findById(request.getProviderId())
                 .orElseThrow(ProviderNotFoundException::new);
     }
-
-    private dev.marko.MedRecords.entities.Service findService(BookAppointmentRequest request) {
-        return serviceRepository.findById(request.getServiceId())
-                .orElseThrow(ServiceNotFoundException::new);
-    }
-
-
 
 
 }

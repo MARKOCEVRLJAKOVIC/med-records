@@ -13,8 +13,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     List<Appointment> findAllByProviderId(Long id);
     List<Appointment> findAllByClientId(Long id);
-    Optional<List<Appointment>> findAllByClientIdAndProviderUser(Long id, User user);
-    Optional<List<Appointment>> findAllByClientIdAndClientUser(Long id, User user);
+    List<Appointment> findAllByClientIdAndProviderUser(Long id, User user);
+    List<Appointment> findAllByClientIdAndClientUser(Long id, User user);
 
     Optional<Appointment> findByIdAndClientUser(Long id, User user);
     Optional<Appointment> findByIdAndProviderUser(Long id, User user);
