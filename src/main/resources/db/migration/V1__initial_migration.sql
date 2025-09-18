@@ -16,6 +16,7 @@ CREATE TABLE clients (
     address TEXT,
     allergies TEXT,
     medical_notes TEXT,
+
     user_id BIGINT UNIQUE REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -28,16 +29,8 @@ CREATE TABLE providers (
     license_number VARCHAR(100),
     employment_start DATE,
     employment_end DATE,
-    user_id BIGINT UNIQUE REFERENCES users(id) ON DELETE CASCADE
-);
 
-CREATE TABLE services (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    price DECIMAL(10,2),
-    duration_minutes INT,
-    provider_id BIGINT NOT NULL REFERENCES providers(id) ON DELETE CASCADE
+    user_id BIGINT UNIQUE REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE rooms (
@@ -46,9 +39,21 @@ CREATE TABLE rooms (
     location VARCHAR(255),
     type VARCHAR(50) DEFAULT 'ROOM',
     capacity INT DEFAULT 1,
-    is_active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE,
+
+    provider_id BIGINT REFERENCES providers(id) ON DELETE CASCADE
 );
 
+CREATE TABLE services (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2),
+    duration_minutes INT,
+
+    provider_id BIGINT NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
+    default_room_id BIGINT REFERENCES rooms(id) ON DELETE SET NULL
+);
 
 CREATE TABLE appointments (
     id BIGSERIAL PRIMARY KEY,
@@ -56,55 +61,54 @@ CREATE TABLE appointments (
     end_time TIMESTAMP,
     status VARCHAR(50) CHECK (status IN ('UNCONFIRMED','CONFIRMED','ARRIVED','COMPLETED','CANCELED','NO_SHOW')) NOT NULL,
     notes TEXT,
+    recurrence_rule VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
     client_id BIGINT REFERENCES clients(id) ON DELETE CASCADE,
     provider_id BIGINT REFERENCES providers(id) ON DELETE RESTRICT,
     service_id BIGINT REFERENCES services(id) ON DELETE SET NULL,
-    room_id BIGINT REFERENCES rooms(id) ON DELETE SET NULL,
-    recurrence_rule VARCHAR(255),  -- e.g., iCal RRULE
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    room_id BIGINT REFERENCES rooms(id) ON DELETE SET NULL
 );
 
--- Pivot table: multiple services per appointment
 CREATE TABLE appointment_services (
-    appointment_id BIGINT REFERENCES appointments(id) ON DELETE CASCADE,
-    service_id BIGINT REFERENCES services(id) ON DELETE CASCADE,
     duration_override INT,
     price_override DECIMAL(10,2),
-    PRIMARY KEY (appointment_id, service_id)
+    PRIMARY KEY (appointment_id, service_id),
+    appointment_id BIGINT REFERENCES appointments(id) ON DELETE CASCADE,
+    service_id BIGINT REFERENCES services(id) ON DELETE CASCADE
 );
 
--- Appointment notifications/reminders
 CREATE TABLE appointment_notifications (
     id BIGSERIAL PRIMARY KEY,
-    appointment_id BIGINT REFERENCES appointments(id) ON DELETE CASCADE,
     status VARCHAR(50) CHECK (status IN ('PENDING','SENT','FAILED')) DEFAULT 'PENDING',
-    notification_type VARCHAR(50) DEFAULT 'EMAIL', -- or SMS, PUSH
+    notification_type VARCHAR(50) DEFAULT 'EMAIL',
     sent_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    appointment_id BIGINT REFERENCES appointments(id) ON DELETE CASCADE
 );
 
 CREATE TABLE memberships (
     id BIGSERIAL PRIMARY KEY,
-    client_id BIGINT REFERENCES clients(id) ON DELETE CASCADE,
     type VARCHAR(100) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE,
     status VARCHAR(50) CHECK (status IN ('ACTIVE','PAUSED','EXPIRED','CANCELED')),
     monthly_fee DECIMAL(10,2),
     included_services JSONB,
-    discount_rate DECIMAL(5,2)
+    discount_rate DECIMAL(5,2),
+
+    client_id BIGINT REFERENCES clients(id) ON DELETE CASCADE
 );
 
 CREATE TABLE medical_records (
     id BIGSERIAL PRIMARY KEY,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    notes TEXT,
+
     client_id BIGINT REFERENCES clients(id) ON DELETE CASCADE,
     provider_id BIGINT REFERENCES providers(id),
-    service_id BIGINT REFERENCES services(id),
-    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    treatment_type VARCHAR(255),
-    medications_used TEXT,
-    notes TEXT,
-    follow_up_required BOOLEAN DEFAULT FALSE
+    service_id BIGINT REFERENCES services(id)
 );
 
 CREATE TABLE photos (
@@ -112,6 +116,7 @@ CREATE TABLE photos (
     public_id VARCHAR(255),
     type VARCHAR(50) CHECK (type IN ('BEFORE','AFTER','SIDE','FRONT','PROFILE')),
     taken_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
     medical_record_id BIGINT REFERENCES medical_records(id) ON DELETE CASCADE,
     client_id BIGINT REFERENCES clients(id) ON DELETE CASCADE
 );
@@ -125,7 +130,9 @@ CREATE TABLE inventory (
     expiry_date DATE,
     quantity INT NOT NULL DEFAULT 0,
     low_stock_threshold INT DEFAULT 10,
-    unit VARCHAR(20)
+    unit VARCHAR(20),
+
+    provider_id BIGINT NOT NULL REFERENCES providers(id) ON DELETE CASCADE
 );
 
 CREATE TABLE client_analytics (
@@ -138,10 +145,11 @@ CREATE TABLE client_analytics (
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Indexes for performance
 CREATE INDEX idx_appointments_client_id ON appointments(client_id);
 CREATE INDEX idx_appointments_provider_id ON appointments(provider_id);
 CREATE INDEX idx_appointment_services_appointment_id ON appointment_services(appointment_id);
 CREATE INDEX idx_appointment_services_service_id ON appointment_services(service_id);
 CREATE INDEX idx_appointment_notifications_appointment_id ON appointment_notifications(appointment_id);
 CREATE INDEX idx_appointments_room_id ON appointments(room_id);
+CREATE INDEX idx_rooms_provider_id ON rooms(provider_id);
+CREATE INDEX idx_services_default_room_id ON services(default_room_id);

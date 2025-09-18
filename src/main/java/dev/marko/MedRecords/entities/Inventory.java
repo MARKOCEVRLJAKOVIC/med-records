@@ -30,10 +30,10 @@ public class Inventory {
     private LocalDate expiryDate;
 
     @Column(name = "quantity")
-    private Integer quantity = 0;
+    private Integer quantity;
 
     @Column(name = "low_stock_threshold")
-    private Integer lowStockThreshold = 10;
+    private Integer lowStockThreshold;
 
 
 
