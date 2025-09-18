@@ -15,6 +15,7 @@ public class BookAppointmentRequest {
     private String notes;
     private Long clientId;
     private Long providerId;
+    private Long roomId;
     private List<Long> serviceIds;
 
 }

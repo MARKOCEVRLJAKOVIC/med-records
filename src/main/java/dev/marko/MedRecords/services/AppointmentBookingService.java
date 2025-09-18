@@ -5,20 +5,15 @@ import dev.marko.MedRecords.dtos.AppointmentDto;
 import dev.marko.MedRecords.dtos.BookAppointmentRequest;
 import dev.marko.MedRecords.dtos.UpdateAppointmentRequest;
 import dev.marko.MedRecords.entities.*;
-import dev.marko.MedRecords.exceptions.AppointmentNotFoundException;
-import dev.marko.MedRecords.exceptions.ClientNotFoundException;
-import dev.marko.MedRecords.exceptions.ProviderNotFoundException;
-import dev.marko.MedRecords.exceptions.ServiceNotFoundException;
+import dev.marko.MedRecords.exceptions.*;
 import dev.marko.MedRecords.mappers.AppointmentMapper;
-import dev.marko.MedRecords.repositories.AppointmentRepository;
-import dev.marko.MedRecords.repositories.ClientRepository;
-import dev.marko.MedRecords.repositories.ProviderRepository;
-import dev.marko.MedRecords.repositories.ServiceRepository;
+import dev.marko.MedRecords.repositories.*;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -45,6 +40,7 @@ public class AppointmentBookingService {
     private final AppointmentMapper appointmentMapper;
     private final ClientRepository clientRepository;
     private final ServiceRepository serviceRepository;
+    private final RoomRepository roomRepository;
 
     public AppointmentDto getAppointment(Long id){
 
@@ -55,7 +51,6 @@ public class AppointmentBookingService {
         return appointmentMapper.toDto(appointment);
 
     }
-
 
     public List<AppointmentDto> findAppointmentsForProvider(Long providerId){
 
@@ -97,7 +92,6 @@ public class AppointmentBookingService {
     public AppointmentDto bookAppointment(BookAppointmentRequest request){
 
         var user = authService.getCurrentUser();
-
         var client = findClient(request, user);
         var provider = findProvider(request, user);
 
@@ -106,27 +100,28 @@ public class AppointmentBookingService {
         appointment.setClient(client);
         appointment.setProvider(provider);
 
-        // create AppointmentService for every service
-        List<AppointmentService> appointmentServices = request.getServiceIds().stream()
-                .map(serviceId -> {
+        // room check
+        if (request.getRoomId() != null) {
+            var room = roomRepository.findById(request.getRoomId())
+                    .orElseThrow(RoomNotFoundException::new);
 
-                    var service = serviceRepository.findById(serviceId)
-                            .orElseThrow(ServiceNotFoundException::new);
+            if (!room.getProvider().getId().equals(provider.getId())) {
+                throw new AccessDeniedException("Room does not belong to this provider.");
+            }
 
-                    return AppointmentService.builder()
-                            .appointment(appointment)
-                            .service(service)
-                            .durationOverride(service.getDurationMinutes())
-                            .priceOverride(service.getPrice())
-                            .build();
-                })
-                .toList();
+            if (!isRoomAvailable(room.getId(), request.getStartTime(), request.getEndTime())) {
+                throw new IllegalStateException("Room is already booked in this time slot.");
+            }
+
+            appointment.setRoom(room);
+        }
+
+        // services
+
+        var appointmentServices = buildAppointmentServices(appointment, request.getServiceIds());
 
         appointment.setServices(appointmentServices);
-
-
         appointmentRepository.save(appointment);
-
         return appointmentMapper.toDto(appointment);
 
     }
@@ -136,17 +131,39 @@ public class AppointmentBookingService {
 
         var user = authService.getCurrentUser();
 
+        if (request.getStartTime().after(request.getEndTime())) {
+            throw new IllegalArgumentException("Start time cannot be after end time.");
+        }
+
         var appointment = getAppointmentByUserRole(id,user);
+
+
+        // update room if changed
+        if (request.getRoomId() != null) {
+            var room = roomRepository.findById(request.getRoomId())
+                    .orElseThrow(RoomNotFoundException::new);
+            if (!room.getProvider().getId().equals(appointment.getProvider().getId())) {
+                throw new AccessDeniedException("Room does not belong to this provider.");
+            }
+            if (!isRoomAvailable(room.getId(), request.getStartTime(), request.getEndTime())) {
+                throw new IllegalStateException("Room is already booked in this time slot.");
+            }
+            appointment.setRoom(room);
+        }
+
+        // update services if provided
+        if (request.getServiceIds() != null) {
+
+            var appointmentServices = buildAppointmentServices(appointment, request.getServiceIds());
+            appointment.setServices(appointmentServices);
+
+        }
 
         appointmentMapper.update(request, appointment);
         appointmentRepository.save(appointment);
-
         return appointmentMapper.toDto(appointment);
 
     }
-
-    // methods
-
 
     private Appointment getAppointmentByUserRole(Long id, User user) {
         return switch (user.getRole()) {
@@ -177,6 +194,26 @@ public class AppointmentBookingService {
         return providerRepository.findById(request.getProviderId())
                 .orElseThrow(ProviderNotFoundException::new);
     }
+
+    public boolean isRoomAvailable(Long roomId, Timestamp start, Timestamp end) {
+        return !appointmentRepository.existsByRoomIdAndTimeOverlap(roomId, start, end);
+    }
+
+    private List<AppointmentService> buildAppointmentServices(Appointment appointment, List<Long> serviceIds) {
+        return serviceIds.stream()
+                .map(serviceId -> {
+                    var service = serviceRepository.findById(serviceId)
+                            .orElseThrow(ServiceNotFoundException::new);
+                    return AppointmentService.builder()
+                            .appointment(appointment)
+                            .service(service)
+                            .durationOverride(service.getDurationMinutes())
+                            .priceOverride(service.getPrice())
+                            .build();
+                })
+                .toList();
+    }
+
 
 
 }

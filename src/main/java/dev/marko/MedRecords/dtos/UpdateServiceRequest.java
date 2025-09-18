@@ -11,5 +11,7 @@ public class UpdateServiceRequest {
     private String description;
     private BigDecimal price;
     private Integer durationMinutes;
+    private Long providerId;
+    private Long roomId;
 
 }
