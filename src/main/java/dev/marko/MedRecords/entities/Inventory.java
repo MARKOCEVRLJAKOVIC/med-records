@@ -35,6 +35,10 @@ public class Inventory {
     @Column(name = "low_stock_threshold")
     private Integer lowStockThreshold;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "provider_id")
+    private Provider provider;
+
 
 
 }

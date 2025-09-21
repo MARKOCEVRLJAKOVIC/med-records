@@ -13,5 +13,6 @@ public class CreateInventoryRequest {
     private LocalDate expiryDate;
     private Integer quantity;
     private Integer lowStockThreshold;
+    private Long providerId;
 
 }

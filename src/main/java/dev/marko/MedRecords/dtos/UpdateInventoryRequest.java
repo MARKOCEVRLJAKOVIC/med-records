@@ -5,9 +5,8 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class InventoryDto {
+public class UpdateInventoryRequest {
 
-    private Long id;
     private String productName;
     private String productType;
     private String lotNumber;
