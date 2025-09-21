@@ -2,6 +2,7 @@ package dev.marko.MedRecords.calendar;
 
 import dev.marko.MedRecords.entities.Appointment;
 import dev.marko.MedRecords.entities.Provider;
+import dev.marko.MedRecords.entities.SlotStatus;
 import dev.marko.MedRecords.exceptions.ProviderNotFoundException;
 import dev.marko.MedRecords.repositories.AppointmentRepository;
 import dev.marko.MedRecords.repositories.ProviderRepository;
@@ -30,7 +31,7 @@ public class CalendarService {
                         java.sql.Timestamp.valueOf(startDate.atStartOfDay()),
                         java.sql.Timestamp.valueOf(endDate.plusDays(1).atStartOfDay()));
 
-        // Group appointments by date for easier calendar building
+        // Group appointments by date
         Map<LocalDate, List<Appointment>> appointmentsByDate = appointments.stream()
                 .collect(Collectors.groupingBy(appt -> appt.getStartTime().toLocalDateTime().toLocalDate()));
 
@@ -39,15 +40,13 @@ public class CalendarService {
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             List<Appointment> dayAppointments = appointmentsByDate.getOrDefault(date, Collections.emptyList());
 
-            // Build time slots for the day
-            List<TimeSlotDto> timeSlots = buildTimeSlots(dayAppointments);
-
-            boolean available = !timeSlots.isEmpty();
+            // Build slots
+            List<CalendarSlot> slots = buildSlots(date, dayAppointments);
 
             CalendarDayDto dayDto = new CalendarDayDto();
             dayDto.setDate(date);
-            dayDto.setAvailable(available);
-            dayDto.setTimeSlots(timeSlots);
+            dayDto.setAvailable(slots.stream().anyMatch(s -> s.getStatus() == SlotStatus.AVAILABLE));
+            dayDto.setCalendarSlots(slots);
 
             days.add(dayDto);
         }
@@ -57,14 +56,13 @@ public class CalendarService {
         providerCalendarDto.setProviderId(provider.getId());
         providerCalendarDto.setProviderName(provider.getFirstName() + " " + provider.getLastName());
         providerCalendarDto.setSpecialty(provider.getSpecialty());
-        // providerCalendarDto.setPhotoUrl(provider.getPhotoUrl()); // ako imaš slike
         providerCalendarDto.setDaysDto(days);
 
         return providerCalendarDto;
     }
 
-    private List<TimeSlotDto> buildTimeSlots(List<Appointment> appointments) {
-        List<TimeSlotDto> slots = new ArrayList<>();
+    private List<CalendarSlot> buildSlots(LocalDate date, List<Appointment> appointments) {
+        List<CalendarSlot> slots = new ArrayList<>();
 
         // Define working hours (example: 09:00 - 17:00)
         LocalTime workStart = LocalTime.of(9, 0);
@@ -76,36 +74,38 @@ public class CalendarService {
         LocalTime current = workStart;
         for (Appointment appt : appointments) {
             LocalTime apptStart = appt.getStartTime().toLocalDateTime().toLocalTime();
-            LocalTime appointmentEnd = appt.getEndTime().toLocalDateTime().toLocalTime();
+            LocalTime apptEnd = appt.getEndTime().toLocalDateTime().toLocalTime();
 
             // Free slot before appointment
             if (apptStart.isAfter(current)) {
-                slots.add(buildSlot(current, apptStart, "AVAILABLE", null, null));
+                slots.add(buildSlot(date, current, apptStart, SlotStatus.AVAILABLE, null));
             }
 
             // Booked slot
-            slots.add(buildSlot(apptStart, appointmentEnd, "BOOKED",
-                    appt.getId(),
-                    appt.getClient() != null ? appt.getClient().getFirstName() + " " + appt.getClient().getLastName() : null));
+            slots.add(buildSlot(date, apptStart, apptEnd, SlotStatus.BOOKED, appt));
 
-            current = appointmentEnd;
+            current = apptEnd;
         }
 
         // Free slot after last appointment
         if (current.isBefore(workEnd)) {
-            slots.add(buildSlot(current, workEnd, "AVAILABLE", null, null));
+            slots.add(buildSlot(date, current, workEnd, SlotStatus.AVAILABLE, null));
         }
 
         return slots;
     }
 
-    private TimeSlotDto buildSlot(LocalTime start, LocalTime end, String status, Long appointmentId, String clientName) {
-        TimeSlotDto slot = new TimeSlotDto();
-        slot.setStartTime(start.toString());
-        slot.setEndTime(end.toString());
+    private CalendarSlot buildSlot(LocalDate date, LocalTime start, LocalTime end, SlotStatus status, Appointment appointment) {
+        CalendarSlot slot = new CalendarSlot();
+        slot.setDate(date);
+        slot.setStartTime(start);
+        slot.setEndTime(end);
         slot.setStatus(status);
-        slot.setAppointmentId(appointmentId);
-        slot.setClientName(clientName);
+        slot.setAppointment(appointment);
+        slot.setClientName(appointment != null && appointment.getClient() != null
+                ? appointment.getClient().getFirstName() + " " + appointment.getClient().getLastName()
+                : null);
+        slot.setProvider(appointment != null ? appointment.getProvider() : null);
         return slot;
     }
 }

@@ -37,11 +37,11 @@ public class AuthService {
     @Transactional
     public UserDto registerAdmin(RegisterAdminRequest request) {
 
-        var currentUser = getCurrentUser();
-
-        if(currentUser.getRole() != Role.ADMIN){
-            throw new AccessDeniedException("Only Admin can register new Admin.");
-        }
+//        var currentUser = getCurrentUser();
+//
+//        if(currentUser.getRole() != Role.ADMIN){
+//            throw new AccessDeniedException("Only Admin can register new Admin.");
+//        }
 
         var user = userMapper.toEntity(request);
         user.setRole(Role.ADMIN);

@@ -10,6 +10,6 @@ public class CalendarDayDto {
 
     private LocalDate date;
     private boolean available;
-    private List<TimeSlotDto> timeSlots;
+    private List<CalendarSlot> calendarSlots;
 
 }
