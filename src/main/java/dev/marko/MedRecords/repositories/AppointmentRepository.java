@@ -34,4 +34,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     );
 
 
+    List<Appointment> findAllByProviderIdAndStartTimeBetween(Long providerId, Timestamp startDate, Timestamp endDate);
+
+
 }

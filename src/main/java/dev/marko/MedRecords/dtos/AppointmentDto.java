@@ -16,6 +16,7 @@ public class AppointmentDto {
     private Long clientId;
     private Long providerId;
     private Long serviceId;
+    private Long roomId;
 
 
 

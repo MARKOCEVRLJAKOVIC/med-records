@@ -2,7 +2,6 @@ package dev.marko.MedRecords.auth;
 
 import dev.marko.MedRecords.dtos.RegisterAdminRequest;
 import dev.marko.MedRecords.dtos.UserDto;
-import dev.marko.MedRecords.entities.Client;
 import dev.marko.MedRecords.entities.Role;
 import dev.marko.MedRecords.entities.User;
 import dev.marko.MedRecords.exceptions.UserNotFoundException;
@@ -15,17 +14,14 @@ import dev.marko.MedRecords.security.UserDetailsImpl;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.nio.file.AccessDeniedException;
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import org.springframework.transaction.annotation.Transactional;
 
 @AllArgsConstructor
 @Service
@@ -38,8 +34,8 @@ public class AuthService {
     private final JwtService jwtService;
     private final JwtConfig jwtConfig;
 
-
-    public UserDto registerAdmin(RegisterAdminRequest request) throws AccessDeniedException {
+    @Transactional
+    public UserDto registerAdmin(RegisterAdminRequest request) {
 
         var currentUser = getCurrentUser();
 

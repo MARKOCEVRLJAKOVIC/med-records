@@ -25,7 +25,7 @@ public class AuthController {
 
     @PostMapping("/register-admin")
     public ResponseEntity<UserDto> registerAdmin(@RequestBody RegisterAdminRequest request,
-                                                 UriComponentsBuilder builder) throws AccessDeniedException {
+                                                 UriComponentsBuilder builder) {
 
         var userDto = authService.registerAdmin(request);
         var uri = builder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
