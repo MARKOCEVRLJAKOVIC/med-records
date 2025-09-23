@@ -4,6 +4,7 @@ import dev.marko.MedRecords.entities.Appointment;
 import dev.marko.MedRecords.entities.Provider;
 import dev.marko.MedRecords.entities.SlotStatus;
 import dev.marko.MedRecords.exceptions.ProviderNotFoundException;
+import dev.marko.MedRecords.mappers.CalendarSlotMapper;
 import dev.marko.MedRecords.repositories.AppointmentRepository;
 import dev.marko.MedRecords.repositories.ProviderRepository;
 import lombok.AllArgsConstructor;
@@ -20,6 +21,7 @@ public class CalendarService {
 
     private final ProviderRepository providerRepository;
     private final AppointmentRepository appointmentRepository;
+    private final CalendarSlotMapper calendarSlotMapper;
 
     public ProviderCalendarDto getProviderCalendar(Long providerId, LocalDate startDate, LocalDate endDate) {
         Provider provider = providerRepository.findById(providerId)
@@ -42,6 +44,8 @@ public class CalendarService {
 
             // Build slots
             List<CalendarSlot> slots = buildSlots(date, dayAppointments);
+
+            List<TimeSlotDto> slotDtos = mapToDtoList(slots);
 
             CalendarDayDto dayDto = new CalendarDayDto();
             dayDto.setDate(date);
@@ -107,5 +111,21 @@ public class CalendarService {
                 : null);
         slot.setProvider(appointment != null ? appointment.getProvider() : null);
         return slot;
+    }
+
+    private TimeSlotDto mapToDto(CalendarSlot slot) {
+        TimeSlotDto dto = new TimeSlotDto();
+        dto.setStartTime(slot.getStartTime().toString());
+        dto.setEndTime(slot.getEndTime().toString());
+        dto.setStatus(slot.getStatus().name());
+        dto.setAppointmentId(slot.getAppointment() != null ? slot.getAppointment().getId() : null);
+        dto.setClientName(slot.getClientName());
+        return dto;
+    }
+
+    private List<TimeSlotDto> mapToDtoList(List<CalendarSlot> slots) {
+        return slots.stream()
+                .map(this::mapToDto)
+                .toList();
     }
 }
