@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +37,12 @@ public class Provider {
 
     @Column(name = "license_number")
     private String licenseNumber;
+
+    @Column(name = "work_start")
+    private LocalTime workStart;
+
+    @Column(name = "work_end")
+    private LocalTime workEnd;
 
     @Column(name = "employment_start")
     private LocalDate employmentStart;

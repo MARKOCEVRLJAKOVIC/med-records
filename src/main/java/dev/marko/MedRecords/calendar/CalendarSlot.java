@@ -3,11 +3,17 @@ package dev.marko.MedRecords.calendar;
 import dev.marko.MedRecords.entities.Appointment;
 import dev.marko.MedRecords.entities.Provider;
 import dev.marko.MedRecords.entities.SlotStatus;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class CalendarSlot {
 
