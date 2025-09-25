@@ -1,4 +1,4 @@
-package dev.marko.MedRecords.security;
+package dev.marko.MedRecords.config;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;

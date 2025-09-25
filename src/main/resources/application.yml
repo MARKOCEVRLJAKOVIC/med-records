@@ -15,3 +15,7 @@ cloudinary:
   cloud-name: ${CLOUD_NAME}
   api-key: ${CLOUD_API_KEY}
   api-secret: ${CLOUD_API_SECRET}
+twilio:
+  account-sid: ${TW_ACCOUNT_SID}
+  auth-token: ${TW_AUTH_TOKEN}
+  phone-number: ${TW_PHONE_NUMBER}
