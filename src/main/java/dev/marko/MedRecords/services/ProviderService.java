@@ -13,12 +13,14 @@ import dev.marko.MedRecords.repositories.MedicalRecordRepository;
 import dev.marko.MedRecords.repositories.ProviderRepository;
 import dev.marko.MedRecords.repositories.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static dev.marko.MedRecords.entities.Role.ADMIN;
 import static dev.marko.MedRecords.entities.Role.PROVIDER;
@@ -83,6 +85,18 @@ public class ProviderService {
         else {
             throw new AccessDeniedException("You can only view your clients.");
         }
+
+        return clientMapper.toListDto(clientList);
+
+    }
+
+    public List<ClientDto> findConfirmedClientsForProvider(Long providerId, AppointmentStatus status) {
+
+        var user = authService.getCurrentUser();
+
+        var provider = getProviderByRole(providerId, user);
+
+        var clientList = clientRepository.findAllByProviderViaAppointmentStatus(provider, status);
 
         return clientMapper.toListDto(clientList);
 

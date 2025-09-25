@@ -19,6 +19,7 @@ public class ClientController {
 
     private final ClientService clientService;
 
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<ClientDto>> findClients(){

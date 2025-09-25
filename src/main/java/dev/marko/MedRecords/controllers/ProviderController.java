@@ -1,9 +1,11 @@
 package dev.marko.MedRecords.controllers;
 
 import dev.marko.MedRecords.dtos.*;
+import dev.marko.MedRecords.entities.AppointmentStatus;
 import dev.marko.MedRecords.services.ProviderService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -31,6 +33,17 @@ public class ProviderController {
         var clientListDto = providerService.clientsForProvider(providerId);
         return ResponseEntity.ok(clientListDto);
 
+    }
+
+    @GetMapping("/{providerId}/clients/by-status")
+    public ResponseEntity<List<ClientDto>> findClientsForProviderByStatus(
+            @PathVariable Long providerId,
+            @RequestParam AppointmentStatus status) {
+
+        var clientListDto = providerService.findConfirmedClientsForProvider(providerId, status);
+
+        if(clientListDto.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(clientListDto);
     }
 
 
