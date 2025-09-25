@@ -8,10 +8,13 @@ import dev.marko.MedRecords.entities.Client;
 import dev.marko.MedRecords.entities.Role;
 import dev.marko.MedRecords.entities.User;
 import dev.marko.MedRecords.exceptions.ClientNotFoundException;
+import dev.marko.MedRecords.exceptions.ProviderNotFoundException;
 import dev.marko.MedRecords.mappers.ClientMapper;
 import dev.marko.MedRecords.repositories.ClientRepository;
+import dev.marko.MedRecords.repositories.ProviderRepository;
 import dev.marko.MedRecords.repositories.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,12 +30,11 @@ public class ClientService {
     private final ClientMapper clientMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final ProviderRepository providerRepository;
 
     public List<ClientDto> findClients(){
 
-        var user = authService.getCurrentUser();
-        var clientList = clientRepository.findAllByUser(user);
-
+        var clientList = clientRepository.findAll();
         return clientMapper.toListDto(clientList);
 
     }
@@ -40,11 +42,15 @@ public class ClientService {
     public ClientDto findClient(Long id){
 
         var user = authService.getCurrentUser();
-        var client = clientRepository.findByIdAndUser(id, user).orElseThrow(ClientNotFoundException::new);
+
+        var client = findClientForRole(id, user);
+
 
         return clientMapper.toDto(client);
 
     }
+
+
 
     @Transactional
     public ClientDto registerClient(RegisterClientRequest request){
@@ -78,7 +84,7 @@ public class ClientService {
 
         var user = authService.getCurrentUser();
 
-        var client = clientRepository.findByIdAndUser(id, user).orElseThrow(ClientNotFoundException::new);
+        var client = findClientForRole(id, user);
 
         clientMapper.update(request, client);
 
@@ -93,11 +99,23 @@ public class ClientService {
 
         var user = authService.getCurrentUser();
 
-        var client = clientRepository.findByIdAndUser(id, user)
-                .orElseThrow(ClientNotFoundException::new);
+        var client = findClientForRole(id, user);
 
         userRepository.delete(client.getUser());
 
+    }
+
+    private Client findClientForRole(Long id, User user) {
+        return switch (user.getRole()) {
+
+            case ADMIN -> clientRepository.findById(id).orElseThrow(ClientNotFoundException::new);
+            case PROVIDER -> clientRepository.findByIdAndProviderUser(id, user)
+                    .orElseThrow(ClientNotFoundException::new);
+            case CLIENT -> clientRepository.findByIdAndUser(id, user)
+                    .orElseThrow(ClientNotFoundException::new);
+            default -> throw new AccessDeniedException("You can only view your clients.");
+
+        };
     }
 
 }

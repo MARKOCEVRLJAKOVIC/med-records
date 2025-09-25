@@ -12,7 +12,6 @@ import java.util.Optional;
 
 public interface ClientRepository extends JpaRepository<Client, Long> {
 
-    List<Client> findAllByUser(User user);
 
     @Query("""
        SELECT DISTINCT c
@@ -31,6 +30,28 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
        """)
     List<Client> findAllByProviderViaAppointmentsAndUser(@Param("provider") Provider provider,
                                                          @Param("user") User user);
+
+    @Query("""
+       SELECT DISTINCT c
+       FROM Client c
+       JOIN c.appointments a
+       WHERE a.provider = :provider
+         AND c.user = :user
+         AND c.id = :clientId
+       """)
+    Optional<Client> findByIdAndProviderViaAppointmentsAndUser(@Param("clientId") Long clientId,
+                                                               @Param("provider") Provider provider,
+                                                               @Param("user") User user);
+
+    @Query("""
+       SELECT DISTINCT c
+       FROM Client c
+       JOIN c.appointments a
+       WHERE c.id = :id
+         AND a.provider.user = :user
+       """)
+    Optional<Client> findByIdAndProviderUser(@Param("id") Long id,
+                                             @Param("user") User user);
 
     Optional<Client> findByIdAndUser(Long id, User user);
 
