@@ -1,0 +1,10 @@
+CREATE TABLE sms_messages (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    from_number VARCHAR(30) NOT NULL,
+    to_number VARCHAR(30) NOT NULL,
+    body TEXT NOT NULL,
+    status VARCHAR(20) DEFAULT 'DELIVERED',
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    direction VARCHAR(50) NOT NULL CHECK (direction IN ('SENT', 'RECEIVED')),
+    provider_id BIGINT REFERENCES providers(id) ON DELETE CASCADE
+);

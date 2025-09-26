@@ -6,8 +6,10 @@ import com.twilio.type.PhoneNumber;
 import dev.marko.MedRecords.config.TwilioConfig;
 import dev.marko.MedRecords.dtos.SendSmsRequest;
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @AllArgsConstructor
+@Service
 public class SmsService {
 
     private final TwilioConfig twilioConfig;
