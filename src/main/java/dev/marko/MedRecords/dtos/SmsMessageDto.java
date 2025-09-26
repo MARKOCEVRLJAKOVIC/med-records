@@ -5,11 +5,10 @@ import dev.marko.MedRecords.entities.SmsStatus;
 import lombok.Data;
 
 @Data
-public class SendSmsRequest {
+public class SmsMessageDto {
 
-    private Long id;
-    private String fromNumber;
     private String toNumber;
+    private String fromNumber;
     private String body;
     private Direction direction;
     private SmsStatus status;

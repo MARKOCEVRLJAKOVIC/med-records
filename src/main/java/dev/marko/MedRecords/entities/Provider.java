@@ -70,4 +70,6 @@ public class Provider {
     @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SmsMessage> smsMessages = new ArrayList<>();
 
+    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProviderPhoneNumber> phoneNumbers = new ArrayList<>();
 }

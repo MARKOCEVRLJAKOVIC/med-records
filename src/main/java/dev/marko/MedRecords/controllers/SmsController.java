@@ -1,7 +1,7 @@
 package dev.marko.MedRecords.controllers;
 
-import dev.marko.MedRecords.dtos.GenericResponse;
 import dev.marko.MedRecords.dtos.SendSmsRequest;
+import dev.marko.MedRecords.dtos.SmsMessageDto;
 import dev.marko.MedRecords.services.SmsService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,10 +14,24 @@ public class SmsController {
 
     private final SmsService smsService;
 
+    @GetMapping("/{id}")
+    public ResponseEntity<SmsMessageDto> getSmsMessage(@PathVariable Long id){
+
+        var smsMessageDto = smsService.getSmsMessage(id);
+        return ResponseEntity.ok(smsMessageDto);
+
+    }
+
+    @PostMapping
+    public ResponseEntity<SmsMessageDto> sendSmsMessage(@RequestBody SendSmsRequest request) {
+
+        return null;
+
+    }
+
     @PostMapping("/send")
     public ResponseEntity<String> sendSms(@RequestBody SendSmsRequest request){
 
-        smsService.sendSms(request);
         return ResponseEntity.ok("Message sent!");
 
     }
