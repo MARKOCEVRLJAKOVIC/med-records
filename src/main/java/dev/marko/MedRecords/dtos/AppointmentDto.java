@@ -4,6 +4,7 @@ import dev.marko.MedRecords.entities.AppointmentStatus;
 import lombok.Data;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 @Data
 public class AppointmentDto {
@@ -15,7 +16,7 @@ public class AppointmentDto {
     private String notes;
     private Long clientId;
     private Long providerId;
-    private Long serviceId;
+    private List<Long> serviceIds;
     private Long roomId;
 
 
