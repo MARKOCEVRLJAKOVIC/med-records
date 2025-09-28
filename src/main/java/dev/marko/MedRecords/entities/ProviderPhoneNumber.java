@@ -1,15 +1,14 @@
 package dev.marko.MedRecords.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Type;
 
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.List;
 
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 @Entity
@@ -21,18 +20,18 @@ public class ProviderPhoneNumber {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "phone_number", nullable = false, length = 20)
+    @Column(name = "phone_number")
     private String phoneNumber;
 
     @Column(name = "twilio_sid", length = 50)
     private String twilioSid;
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at")
     private Timestamp createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "provider_id", nullable = false)
+    @JoinColumn(name = "provider_id")
     private Provider provider;
 
 }
