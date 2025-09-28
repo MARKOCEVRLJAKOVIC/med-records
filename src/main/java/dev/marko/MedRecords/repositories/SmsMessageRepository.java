@@ -10,5 +10,7 @@ import java.util.Optional;
 public interface SmsMessageRepository extends JpaRepository<SmsMessage, Long> {
 
     Optional<SmsMessage> findByIdAndProviderUser(Long id, User user);
+    boolean existsByTwilioSid(String twilioSid);
+
 
 }

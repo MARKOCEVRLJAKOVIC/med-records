@@ -15,10 +15,6 @@ public class TwilioConfig {
     @Value("${twilio.auth-token}")
     private String authToken;
 
-    @Getter
-    @Value("${twilio.phone-number}")
-    private String phoneNumber;
-
     public TwilioRestClient twilioRestClient() {
         Twilio.init(accountSid, authToken);
         return Twilio.getRestClient();

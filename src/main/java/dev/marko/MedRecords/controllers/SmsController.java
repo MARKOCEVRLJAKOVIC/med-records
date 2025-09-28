@@ -1,11 +1,13 @@
 package dev.marko.MedRecords.controllers;
 
+import dev.marko.MedRecords.dtos.IncomingMessagesRequest;
 import dev.marko.MedRecords.dtos.SendSmsRequest;
 import dev.marko.MedRecords.dtos.SmsMessageDto;
 import dev.marko.MedRecords.services.SmsService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @AllArgsConstructor
 @RestController
@@ -23,24 +25,25 @@ public class SmsController {
     }
 
     @PostMapping
-    public ResponseEntity<SmsMessageDto> sendSmsMessage(@RequestBody SendSmsRequest request) {
+    public ResponseEntity<SmsMessageDto> sendSmsMessage(@RequestBody SendSmsRequest request,
+                                                        UriComponentsBuilder builder) {
 
-        return null;
+        var smsMessageDto = smsService.sendSmsMessage(request);
+        var uri = builder.path("/sms/{id}").buildAndExpand(smsMessageDto.getId()).toUri();
 
-    }
-
-    @PostMapping("/send")
-    public ResponseEntity<String> sendSms(@RequestBody SendSmsRequest request){
-
-        return ResponseEntity.ok("Message sent!");
+        return ResponseEntity.created(uri).body(smsMessageDto);
 
     }
 
     @PostMapping("/receive")
-    public String receiveSms(@RequestParam("From") String from,
-                             @RequestParam("Body") String body) {
-        System.out.println("Message from: " + from + " Message: " + body);
-        return "<Response><Message>Thanks!</Message></Response>";
+    public ResponseEntity<SmsMessageDto> receiveMessage(@RequestBody IncomingMessagesRequest request,
+                                               UriComponentsBuilder builder) {
+
+        var smsMessageDto = smsService.handleIncomingMessages(request);
+        var uri = builder.path("/sms/{id}").buildAndExpand(smsMessageDto.getId()).toUri();
+
+        return ResponseEntity.created(uri).body(smsMessageDto);
+
     }
 
 }

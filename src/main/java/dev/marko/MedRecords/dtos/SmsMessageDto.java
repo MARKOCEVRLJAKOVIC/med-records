@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 public class SmsMessageDto {
 
+    private Long id;
     private String toNumber;
     private String fromNumber;
     private String body;

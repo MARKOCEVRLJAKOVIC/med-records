@@ -8,11 +8,8 @@ import lombok.Data;
 public class SendSmsRequest {
 
     private Long id;
-    private String fromNumber;
     private String toNumber;
     private String body;
-    private Direction direction;
-    private SmsStatus status;
     private Long providerId;
 
 }
