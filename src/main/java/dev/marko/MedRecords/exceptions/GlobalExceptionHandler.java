@@ -30,7 +30,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ErrorDto> handleBadRequestExceptions(RuntimeException ex) {
+
+        ErrorDto response = new ErrorDto(
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+
+    }
+
     // fallback:
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDto> handleGenericException(Exception ex) {

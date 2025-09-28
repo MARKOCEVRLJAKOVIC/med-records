@@ -37,7 +37,6 @@ public class ClientController {
 
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','PROVIDER')")
     @PostMapping
     public ResponseEntity<ClientDto> createClient(@RequestBody RegisterClientRequest request,
                                                   UriComponentsBuilder builder) {

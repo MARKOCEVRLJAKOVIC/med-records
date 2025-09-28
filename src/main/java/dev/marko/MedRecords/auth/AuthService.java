@@ -4,6 +4,7 @@ import dev.marko.MedRecords.dtos.RegisterAdminRequest;
 import dev.marko.MedRecords.dtos.UserDto;
 import dev.marko.MedRecords.entities.Role;
 import dev.marko.MedRecords.entities.User;
+import dev.marko.MedRecords.exceptions.InvalidCredentialsException;
 import dev.marko.MedRecords.exceptions.UserNotFoundException;
 import dev.marko.MedRecords.mappers.UserMapper;
 import dev.marko.MedRecords.repositories.UserRepository;
@@ -16,6 +17,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,14 +54,19 @@ public class AuthService {
 
     }
 
-    public JwtResponse login(LoginRequest request, HttpServletResponse response) {
+    public JwtResponse login(LoginRequest request, HttpServletResponse response)  {
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+        }
+        catch (BadCredentialsException e) {
+            throw new InvalidCredentialsException();
+        }
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow(UserNotFoundException::new);
 
         var accessToken = jwtService.generateToken(user);
