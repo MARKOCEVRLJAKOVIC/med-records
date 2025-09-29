@@ -25,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class SmsService {
 
-    private final TwilioConfig twilioConfig;
     private final AuthService authService;
     private final ProviderRepository providerRepository;
     private final SmsMessageRepository smsMessageRepository;

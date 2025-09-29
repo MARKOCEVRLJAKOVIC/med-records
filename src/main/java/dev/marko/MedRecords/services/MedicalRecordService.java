@@ -92,11 +92,6 @@ public class MedicalRecordService {
             throw new IllegalArgumentException("Selected service does not belong to the given provider.");
         }
 
-        if (user.getRole() == Role.CLIENT && !client.getUser().getId().equals(user.getId())) {
-            throw new AccessDeniedException("Clients can only create records for themselves.");
-        }
-
-
 
         var medicalRecord = medicalRecordMapper.toEntity(request);
 
@@ -115,17 +110,19 @@ public class MedicalRecordService {
 
         var user = authService.getCurrentUser();
 
+        var client = clientRepository.findById(request.getClientId())
+                .orElseThrow(ClientNotFoundException::new);
+
+        var service = serviceRepository.findById(request.getServiceId())
+                .orElseThrow(ServiceNotFoundException::new);
+
+        var provider = providerRepository.findByIdAndUser(request.getProviderId(), user)
+                .orElseThrow(ProviderNotFoundException::new);
+
         var medicalRecord = getMedicalRecordByRole(id, user);
-
-        if (request.getClientId() != null) {
-            var client = clientRepository.findById(request.getClientId())
-                    .orElseThrow(ClientNotFoundException::new);
-
-            // if user = client check if he is changing his client
-            if (user.getRole() == Role.CLIENT && !client.getUser().getId().equals(user.getId())) {
-                throw new AccessDeniedException("Clients can only update their own records.");
-            }
-        }
+        medicalRecord.setClient(client);
+        medicalRecord.setService(service);
+        medicalRecord.setProvider(provider);
 
         medicalRecordMapper.update(request, medicalRecord);
         medicalRecordRepository.save(medicalRecord);
@@ -152,8 +149,6 @@ public class MedicalRecordService {
 
     private MedicalRecord getMedicalRecordByRole(Long id, User user) {
         return switch (user.getRole()) {
-            case CLIENT -> medicalRecordRepository.findByIdAndClientUser(id, user)
-                    .orElseThrow(MedicalRecordNotFoundException::new);
             case PROVIDER -> medicalRecordRepository.findByIdAndProviderUser(id, user)
                     .orElseThrow(MedicalRecordNotFoundException::new);
             case ADMIN -> medicalRecordRepository.findById(id)

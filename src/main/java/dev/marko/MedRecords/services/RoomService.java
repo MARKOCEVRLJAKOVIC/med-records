@@ -71,7 +71,10 @@ public class RoomService {
 
         var user = authService.getCurrentUser();
 
+        var provider = getProviderForRole(request.getProviderId(), user);
+
         var room = getRoomForRole(id, user);
+        room.setProvider(provider);
         roomMapper.update(request, room);
         roomRepository.save(room);
 

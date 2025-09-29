@@ -141,11 +141,27 @@ public class ProviderService {
 
         var provider = getProviderByRole(id, currentUser);
 
-        // update user + provider
-        userMapper.updateFromProviderRequest(request, provider.getUser());
-        providerMapper.update(request, provider);
+        var providerUser = User.builder()
+                .email(request.getEmail())
+                .role(PROVIDER)
+                .build();
 
-        userRepository.save(provider.getUser());
+        provider = Provider.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .phone(request.getPhone())
+                .specialty(request.getSpecialty())
+                .licenseNumber(request.getLicenseNumber())
+                .employmentStart(request.getEmploymentStart())
+                .employmentEnd(request.getEmploymentEnd())
+                .user(providerUser)
+                .build();
+
+
+        // update user + provider
+        userMapper.updateFromProviderRequest(request, providerUser);
+
+        userRepository.save(providerUser);
 
         return providerMapper.toDto(provider);
 

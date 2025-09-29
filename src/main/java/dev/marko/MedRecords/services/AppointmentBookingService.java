@@ -80,8 +80,13 @@ public class AppointmentBookingService {
         var appointmentList = switch (user.getRole()) {
             case ADMIN -> appointmentRepository.findAllByClientId(clientId);
             case PROVIDER -> appointmentRepository.findAllByClientIdAndProviderUser(clientId, user);
-            case CLIENT -> appointmentRepository.findAllByClientIdAndClientUser(clientId, user);
-            default -> throw new AccessDeniedException("");
+            case CLIENT -> {
+                if (!user.getClient().getId().equals(clientId)) {
+                    throw new AccessDeniedException("Access Denied");
+                }
+                yield appointmentRepository.findAllByClientIdAndClientUser(clientId, user);
+            }
+            default -> throw new AccessDeniedException("Access Denied");
         };
 
         return appointmentMapper.toListDto(appointmentList);
@@ -92,8 +97,8 @@ public class AppointmentBookingService {
     public AppointmentDto bookAppointment(BookAppointmentRequest request){
 
         var user = authService.getCurrentUser();
-        var client = findClient(request, user);
-        var provider = findProvider(request, user);
+        var client = findClient(request.getClientId(), user);
+        var provider = findProvider(request.getProviderId(), user);
 
 
         var appointment = appointmentMapper.toEntity(request);
@@ -130,13 +135,16 @@ public class AppointmentBookingService {
     public AppointmentDto updateAppointment(Long id, UpdateAppointmentRequest request){
 
         var user = authService.getCurrentUser();
+        var client = findClient(request.getClientId(), user);
+        var provider = findProvider(request.getProviderId(), user);
 
         if (request.getStartTime().after(request.getEndTime())) {
             throw new IllegalArgumentException("Start time cannot be after end time.");
         }
 
         var appointment = getAppointmentByUserRole(id,user);
-
+        appointment.setClient(client);
+        appointment.setProvider(provider);
 
         // update room if changed
         if (request.getRoomId() != null) {
@@ -177,21 +185,21 @@ public class AppointmentBookingService {
         };
     }
 
-    private Client findClient(BookAppointmentRequest request, User user) {
+    private Client findClient(Long clientId, User user) {
         if (user.getRole() == Role.CLIENT) {
-            return clientRepository.findByIdAndUser(request.getClientId(), user)
+            return clientRepository.findByIdAndUser(clientId, user)
                     .orElseThrow(ClientNotFoundException::new);
         }
-        return clientRepository.findById(request.getClientId())
+        return clientRepository.findById(clientId)
                 .orElseThrow(ClientNotFoundException::new);
     }
 
-    private Provider findProvider(BookAppointmentRequest request, User user) {
+    private Provider findProvider(Long providerId, User user) {
         if (user.getRole() == Role.PROVIDER) {
-            return providerRepository.findByIdAndUser(request.getProviderId(), user)
+            return providerRepository.findByIdAndUser(providerId, user)
                     .orElseThrow(ProviderNotFoundException::new);
         }
-        return providerRepository.findById(request.getProviderId())
+        return providerRepository.findById(providerId)
                 .orElseThrow(ProviderNotFoundException::new);
     }
 

@@ -63,6 +63,7 @@ public class MedicalRecordController {
 
     }
 
+    @DeleteMapping("/{id}")
     public ResponseEntity<MedicalRecordDto> deleteMedicalRecord(Long id){
 
         medicalRecordService.deleteMedicalRecord(id);

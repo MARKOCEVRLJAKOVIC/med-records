@@ -86,9 +86,20 @@ public class ClientService {
 
         var client = findClientForRole(id, user);
 
-        clientMapper.update(request, client);
+        client = Client.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .phone(request.getPhone())
+                .dateOfBirth(request.getDateOfBirth())
+                .gender(request.getGender())
+                .address(request.getAddress())
+                .allergies(request.getAllergies())
+                .medicalNotes(request.getMedicalNotes())
+                .user(user)
+                .build();
 
-        clientRepository.save(client);
+        user.setClient(client);
+        userRepository.save(user);
 
         return clientMapper.toDto(client);
 

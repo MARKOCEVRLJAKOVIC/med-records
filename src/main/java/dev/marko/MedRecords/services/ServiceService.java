@@ -7,6 +7,7 @@ import dev.marko.MedRecords.dtos.UpdateServiceRequest;
 import dev.marko.MedRecords.exceptions.ProviderNotFoundException;
 import dev.marko.MedRecords.exceptions.ServiceNotFoundException;
 import dev.marko.MedRecords.mappers.ServiceMapper;
+import dev.marko.MedRecords.repositories.MedicalRecordRepository;
 import dev.marko.MedRecords.repositories.ProviderRepository;
 import dev.marko.MedRecords.repositories.ServiceRepository;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,7 @@ public class ServiceService {
     private final ServiceRepository serviceRepository;
     private final ServiceMapper serviceMapper;
     private final AuthService authService;
+    private final MedicalRecordRepository medicalRecordRepository;
 
     public List<ServiceDto> findServicesForProvider(Long providerId){
 
@@ -57,7 +59,14 @@ public class ServiceService {
 
     public ServiceDto updateService(UpdateServiceRequest request, Long id){
 
+        var user = authService.getCurrentUser();
+
         var service = serviceRepository.findById(id).orElseThrow(ServiceNotFoundException::new);
+
+        var provider = providerRepository.findByIdAndUser(request.getProviderId(), user)
+                .orElseThrow(ProviderNotFoundException::new);
+
+        service.setProvider(provider);
 
         serviceMapper.update(request, service);
         serviceRepository.save(service);
