@@ -32,7 +32,7 @@ import java.util.Map;
 @Service
 public class PhotoService {
 
-    private final Cloudinary cloudinary;
+    private final PhotoStorageService photoStorageService;
     private final AuthService authService;
     private final PhotoMapper photoMapper;
     private final PhotoRepository photoRepository;
@@ -68,7 +68,7 @@ public class PhotoService {
         var photo = getPhotoForRole(id, user, provider);
 
         var photoDto = photoMapper.toDto(photo);
-        photoDto.setUrl(getSignedPhotoUrl(photo.getPublicId()));
+        photoDto.setUrl(photoStorageService.generateSignedUrl(photo.getPublicId()));
 
         return photoDto;
 
@@ -92,12 +92,7 @@ public class PhotoService {
         var medicalRecord = medicalRecordRepository.findByIdAndClient(medicalRecordId, client)
                 .orElseThrow(MedicalRecordNotFoundException::new);
 
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
-                "resource_type", "image",
-                "type", "authenticated"
-        ));
-
-        String publicId = uploadResult.get("public_id").toString();
+        String publicId = photoStorageService.uploadPhoto(file);
 
         var photo = Photo.builder()
                 .publicId(publicId)
@@ -133,23 +128,12 @@ public class PhotoService {
         var provider = user.getProvider();
         var photo = getPhotoForRole(id, user, provider);
 
+        photoStorageService.deletePhoto(photo.getPublicId());
         photoRepository.delete(photo);
 
     }
 
-
-
     // methods
-
-    private String getSignedPhotoUrl(String publicId) {
-        Map options = ObjectUtils.asMap(
-                "resource_type", "image",
-                "type", "authenticated",
-                "expires_at", System.currentTimeMillis() / 1000 + 60 * 10 // 10 minuta
-        );
-
-        return cloudinary.url().signed(true).generate(publicId);
-    }
 
     private Photo getPhotoForRole(Long id, User user, Provider provider) {
         return switch (user.getRole()) {
