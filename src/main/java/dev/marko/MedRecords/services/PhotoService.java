@@ -1,7 +1,5 @@
 package dev.marko.MedRecords.services;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import dev.marko.MedRecords.auth.AuthService;
 import dev.marko.MedRecords.dtos.PhotoDto;
 import dev.marko.MedRecords.dtos.UpdatePhotoRequest;
@@ -17,7 +15,6 @@ import dev.marko.MedRecords.repositories.ClientRepository;
 import dev.marko.MedRecords.repositories.MedicalRecordRepository;
 import dev.marko.MedRecords.repositories.PhotoRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
 
 @AllArgsConstructor
 @Service

@@ -11,6 +11,8 @@ spring:
     secret: ${JWT_SECRET_KEY}
     accessTokenExpiration: 7200 # 2 hours
     refreshTokenExpiration: 604800 # 7 days
+photo:
+  storage: cloudinary
 cloudinary:
   cloud-name: ${CLOUD_NAME}
   api-key: ${CLOUD_API_KEY}

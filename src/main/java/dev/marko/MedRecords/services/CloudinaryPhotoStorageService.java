@@ -3,6 +3,7 @@ package dev.marko.MedRecords.services;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import lombok.AllArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,6 +12,7 @@ import java.util.Map;
 
 @AllArgsConstructor
 @Service
+@ConditionalOnProperty(name = "photo.storage", havingValue = "cloudinary")
 public class CloudinaryPhotoStorageService implements PhotoStorageService {
 
     private final Cloudinary cloudinary;
