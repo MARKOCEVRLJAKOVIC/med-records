@@ -1,6 +1,7 @@
 package dev.marko.MedRecords.controllers;
 
 import dev.marko.MedRecords.dtos.IncomingMessagesRequest;
+import dev.marko.MedRecords.dtos.ProviderPhoneNumberDto;
 import dev.marko.MedRecords.dtos.SendSmsRequest;
 import dev.marko.MedRecords.dtos.SmsMessageDto;
 import dev.marko.MedRecords.services.SmsService;
@@ -43,6 +44,15 @@ public class SmsController {
         var uri = builder.path("/sms/{id}").buildAndExpand(smsMessageDto.getId()).toUri();
 
         return ResponseEntity.created(uri).body(smsMessageDto);
+
+    }
+
+    @PostMapping("/providerId/buy-phone-number")
+    public ResponseEntity<ProviderPhoneNumberDto> buyPhoneNumber(@RequestParam Long providerId,
+                                                                 @RequestParam String areaCode){
+
+        var phoneNumber = twilioPhoneNumberService.buyNumberForProvider(providerId, areaCode);
+        return ResponseEntity.ok(phoneNumber);
 
     }
 
