@@ -1,10 +1,8 @@
 package dev.marko.MedRecords.services;
 
 import com.twilio.rest.api.v2010.account.Message;
-
 import com.twilio.type.PhoneNumber;
 import dev.marko.MedRecords.auth.AuthService;
-import dev.marko.MedRecords.config.TwilioConfig;
 import dev.marko.MedRecords.dtos.IncomingMessagesRequest;
 import dev.marko.MedRecords.dtos.SendSmsRequest;
 import dev.marko.MedRecords.dtos.SmsMessageDto;
