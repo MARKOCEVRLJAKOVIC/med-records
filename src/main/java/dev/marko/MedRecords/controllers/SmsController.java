@@ -51,7 +51,7 @@ public class SmsController {
     public ResponseEntity<ProviderPhoneNumberDto> buyPhoneNumber(@RequestParam Long providerId,
                                                                  @RequestParam String areaCode){
 
-        var phoneNumber = twilioPhoneNumberService.buyNumberForProvider(providerId, areaCode);
+        var phoneNumber = smsService.buyNumberForProvider(providerId, areaCode);
         return ResponseEntity.ok(phoneNumber);
 
     }

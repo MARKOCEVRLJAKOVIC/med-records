@@ -1,9 +1,5 @@
 package dev.marko.MedRecords.services;
 
-import com.twilio.rest.api.v2010.account.IncomingPhoneNumber;
-import com.twilio.rest.api.v2010.account.Message;
-import com.twilio.rest.api.v2010.account.availablephonenumbercountry.Local;
-import com.twilio.type.PhoneNumber;
 import dev.marko.MedRecords.auth.AuthService;
 import dev.marko.MedRecords.dtos.IncomingMessagesRequest;
 import dev.marko.MedRecords.dtos.ProviderPhoneNumberDto;
@@ -33,6 +29,7 @@ public class SmsService {
     private final SmsMessageMapper smsMessageMapper;
     private final ProviderPhoneNumberRepository providerPhoneNumberRepository;
     private final ProviderPhoneNumberMapper phoneNumberMapper;
+    private final SmsProviderService smsProviderService;
 
     public SmsMessageDto getSmsMessage(Long id) {
 
@@ -108,48 +105,14 @@ public class SmsService {
 
     public ProviderPhoneNumberDto buyNumberForProvider(Long providerId, String areaCode) {
 
-        var user = authService.getCurrentUser();
-
-        var provider = switch (user.getRole()) {
-            case ADMIN -> providerRepository.findById(providerId)
-                    .orElseThrow(ProviderNotFoundException::new);
-            case PROVIDER -> providerRepository.findByIdAndUser(providerId, user)
-                    .orElseThrow(ProviderNotFoundException::new);
-            default -> throw new AccessDeniedException("Access denied");
-        };
-
-        var availableNumbers = Local.reader("US")
-                .setAreaCode(Integer.parseInt(areaCode))
-                .limit(1)
-                .read();
-
-        if (!availableNumbers.iterator().hasNext()) {
-            throw new RuntimeException("No numbers available for this area code");
-        }
-
-        var number = availableNumbers.iterator().next();
-
-        IncomingPhoneNumber purchasedNumber = IncomingPhoneNumber.creator(
-                new PhoneNumber(number.getPhoneNumber().toString())
-        ).create();
-
-        ProviderPhoneNumber providerPhoneNumber = ProviderPhoneNumber.builder()
-                .phoneNumber(purchasedNumber.getPhoneNumber().toString())
-                .twilioSid(purchasedNumber.getSid())
-                .provider(provider)
-                .build();
-
-        return phoneNumberMapper.toDto(providerPhoneNumber);
-
+        return smsProviderService.buyNumberForProvider(providerId, areaCode);
 
     }
 
-    private static void sendSmsMessage(SendSmsRequest request, ProviderPhoneNumber providerPhoneNumber) {
-        Message.creator(
-                new PhoneNumber(request.getToNumber()),
-                new PhoneNumber(providerPhoneNumber.getPhoneNumber()),
-                request.getBody()
-        ).create();
+    private void sendSmsMessage(SendSmsRequest request, ProviderPhoneNumber providerPhoneNumber) {
+
+        smsProviderService.sendSmsMessage(request, providerPhoneNumber);
+
     }
 
     private SmsMessage getSmsMessageForRole(Long smsId, User user) {
