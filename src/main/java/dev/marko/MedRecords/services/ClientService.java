@@ -30,7 +30,7 @@ public class ClientService {
     private final ClientMapper clientMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-    private final ProviderRepository providerRepository;
+    private final RoleAuthentication roleAuthentication;
 
     public List<ClientDto> findClients(){
 
@@ -43,7 +43,7 @@ public class ClientService {
 
         var user = authService.getCurrentUser();
 
-        var client = findClientForRole(id, user);
+        var client = roleAuthentication.findClientForRole(id, user);
 
 
         return clientMapper.toDto(client);
@@ -84,7 +84,7 @@ public class ClientService {
 
         var user = authService.getCurrentUser();
 
-        var client = findClientForRole(id, user);
+        var client = roleAuthentication.findClientForRole(id, user);
 
         client = Client.builder()
                 .firstName(request.getFirstName())
@@ -110,23 +110,12 @@ public class ClientService {
 
         var user = authService.getCurrentUser();
 
-        var client = findClientForRole(id, user);
+        var client = roleAuthentication.findClientForRole(id, user);
 
         userRepository.delete(client.getUser());
 
     }
 
-    private Client findClientForRole(Long id, User user) {
-        return switch (user.getRole()) {
 
-            case ADMIN -> clientRepository.findById(id).orElseThrow(ClientNotFoundException::new);
-            case PROVIDER -> clientRepository.findByIdAndProviderUser(id, user)
-                    .orElseThrow(ClientNotFoundException::new);
-            case CLIENT -> clientRepository.findByIdAndUser(id, user)
-                    .orElseThrow(ClientNotFoundException::new);
-            default -> throw new AccessDeniedException("You can only view your clients.");
-
-        };
-    }
 
 }

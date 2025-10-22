@@ -30,8 +30,7 @@ public class InventoryService {
     private final AuthService authService;
     private final InventoryRepository inventoryRepository;
     private final InventoryMapper inventoryMapper;
-    private final ProviderRepository providerRepository;
-
+    private final RoleAuthentication roleAuthentication;
 
     public List<InventoryDto> findAllInventoriesForProvider(Long providerId){
 
@@ -62,7 +61,7 @@ public class InventoryService {
 
         var user = authService.getCurrentUser();
 
-        var provider = getProviderForRole(request.getProviderId(), user);
+        var provider = roleAuthentication.getProviderForRole(request.getProviderId(), user);
 
         var inventory = inventoryMapper.toEntity(request);
         inventory.setProvider(provider);
@@ -78,7 +77,7 @@ public class InventoryService {
 
         var user = authService.getCurrentUser();
         var inventory = getInventoryForRole(id, user);
-        var provider = getProviderForRole(request.getProviderId(), user);
+        var provider = roleAuthentication.getProviderForRole(request.getProviderId(), user);
 
         inventory.setProvider(provider);
         inventoryMapper.update(request, inventory);
@@ -110,14 +109,6 @@ public class InventoryService {
         };
     }
 
-    private Provider getProviderForRole(Long providerId, User user) {
-        return switch (user.getRole()) {
-            case ADMIN -> providerRepository.findById(providerId)
-                    .orElseThrow(ProviderNotFoundException::new);
-            case PROVIDER -> providerRepository.findByIdAndUser(providerId, user)
-                    .orElseThrow(ProviderNotFoundException::new);
-            default -> throw new AccessDeniedException("Access Denied");
-        };
-    }
+
 
 }
