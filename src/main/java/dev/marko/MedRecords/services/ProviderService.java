@@ -39,6 +39,7 @@ public class ProviderService {
     private final ClientMapper clientMapper;
     private final MedicalRecordRepository medicalRecordRepository;
     private final MedicalRecordMapper medicalRecordMapper;
+    private final RoleAuthentication roleAuthentication;
 
     public List<ProviderDto> findAllProviders(){
 
@@ -58,7 +59,7 @@ public class ProviderService {
 
         var user = authService.getCurrentUser();
 
-        var provider = getProviderByRole(id, user);
+        var provider = roleAuthentication.getProviderForRole(id, user);
 
         return providerMapper.toDto(provider);
 
@@ -94,7 +95,7 @@ public class ProviderService {
 
         var user = authService.getCurrentUser();
 
-        var provider = getProviderByRole(providerId, user);
+        var provider = roleAuthentication.getProviderForRole(providerId, user);
 
         var clientList = clientRepository.findAllByProviderViaAppointmentStatus(provider, status);
 
@@ -139,7 +140,7 @@ public class ProviderService {
 
         var currentUser = authService.getCurrentUser();
 
-        var provider = getProviderByRole(id, currentUser);
+        var provider = roleAuthentication.getProviderForRole(id, currentUser);
 
         var providerUser = User.builder()
                 .email(request.getEmail())
@@ -172,27 +173,13 @@ public class ProviderService {
 
         var currentUser = authService.getCurrentUser();
 
-        var provider = getProviderByRole(id, currentUser);
+        var provider = roleAuthentication.getProviderForRole(id, currentUser);
 
         userRepository.delete(provider.getUser());
 
 
     }
 
-    // methods
-
-    private Provider getProviderByRole(Long id, User user) {
-        return switch (user.getRole()) {
-
-            case ADMIN -> providerRepository.findById(id)
-                    .orElseThrow(ProviderNotFoundException::new);
-            case PROVIDER -> providerRepository.findByIdAndUser(id, user)
-                    .orElseThrow(ProviderNotFoundException::new);
-
-            default -> throw new AccessDeniedException("Unauthorized to view provider");
-
-        };
-    }
 
 
 }

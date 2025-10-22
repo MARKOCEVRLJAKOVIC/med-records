@@ -28,12 +28,13 @@ public class RoomService {
     public final RoomRepository roomRepository;
     public final ProviderRepository providerRepository;
     private final AuthService authService;
+    private final RoleAuthentication roleAuthentication;
 
     public List<RoomDto> findAllRoomsForProvider(Long providerId){
 
         var user = authService.getCurrentUser();
 
-        var provider = getProviderForRole(providerId, user);
+        var provider = roleAuthentication.getProviderForRole(providerId, user);
 
         var roomList = roomRepository.findAllByProvider(provider);
 
@@ -55,7 +56,7 @@ public class RoomService {
 
         var user = authService.getCurrentUser();
 
-        var provider = getProviderForRole(request.getProviderId(), user);
+        var provider = roleAuthentication.getProviderForRole(request.getProviderId(), user);
 
         var room = roomMapper.toEntity(request);
         room.setProvider(provider);
@@ -71,7 +72,7 @@ public class RoomService {
 
         var user = authService.getCurrentUser();
 
-        var provider = getProviderForRole(request.getProviderId(), user);
+        var provider = roleAuthentication.getProviderForRole(request.getProviderId(), user);
 
         var room = getRoomForRole(id, user);
         room.setProvider(provider);
@@ -89,19 +90,6 @@ public class RoomService {
         var room = getRoomForRole(id, user);
         roomRepository.delete(room);
 
-    }
-
-
-    // methods
-
-    private Provider getProviderForRole(Long providerId, User user) {
-        return switch (user.getRole()) {
-            case ADMIN -> providerRepository.findById(providerId)
-                    .orElseThrow(ProviderNotFoundException::new);
-            case PROVIDER -> providerRepository.findByIdAndUser(providerId, user)
-                    .orElseThrow(ProviderNotFoundException::new);
-            default -> throw new AccessDeniedException("Access denied.");
-        };
     }
 
     private Room getRoomForRole(Long id, User user) {
